@@ -1,5 +1,7 @@
 This repository contains training, generation and utility scripts for Stable Diffusion.
 
+https://github.com/BoredMiMi/sd-scripts/blob/main/Mock.html
+
 [__Change History__](#change-history) is moved to the bottom of the page. 
 更新履歴は[ページ末尾](#change-history)に移しました。
 
