@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- CRITICAL META TAGS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  
+  <title>Card Dashboard</title>
+  
+  <!-- INLINE CSS (All styles here) -->
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-darker: #0a0f1d;
+      --glass-light: rgba(255, 255, 255, 0.1);
+      --glass-dark: rgba(255, 255, 255, 0.05);
+      --gold-start: #D4AF37;
+      --gold-end: #FFD700;
+      --card-width: calc((100vw - 40px) / 5);
+      --card-height: calc(var(--card-width) * 1.5);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      background: var(--bg-dark);
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      position: relative;
+    }
+    
+    .dashboard-container {
+      height: 100vh;
+      overflow: hidden;
+      perspective: 1000px;
+      position: relative;
+    }
+    
+    .dashboard {
+      display: flex;
+      gap: 10px;
+      padding: 20px 10px;
+      height: calc(100% - 40px);
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      transform: rotateX(5deg);
+      transform-style: preserve-3d;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .card {
+      scroll-snap-align: start;
+      flex: 0 0 var(--card-width);
+      height: var(--card-height);
+      border-radius: 24px;
+      background: var(--glass-dark);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 0 10px rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      transform-style: preserve-3d;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--gold-start), var(--gold-end));
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 2;
+    }
+    
+    .card.collected::before {
+      opacity: 1;
+    }
+    
+    .card-content {
+      font-size: 24px;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      z-index: 1;
+      position: relative;
+    }
+    
+    .card.collected {
+      background: linear-gradient(135deg, var(--gold-start), var(--gold-end));
+      background-blend-mode: overlay;
+    }
+    
+    .card.collected .card-content {
+      color: rgba(0, 0, 0, 0.85);
+      text-shadow: 0 2px 4px rgba(255, 255, 255, 0.4);
+    }
+    
+    .card-edge-glow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 23px;
+      padding: 2px;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: xor;
+      -webkit-mask-composite: xor;
+      background: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.8), transparent 70%);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .background-gradient {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, var(--bg-darker), #1e293b);
+      z-index: -1;
+    }
+    
+    .gold-particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    
+    .card.collected .gold-particles {
+      opacity: 1;
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      .card {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+    
+    .low-end .card {
+      backdrop-filter: blur(4px) !important;
+      -webkit-backdrop-filter: blur(4px) !important;
+    }
+    
+    .low-end .gold-particles {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="background-gradient"></div>
+  
+  <div class="dashboard-container">
+    <div class="dashboard">
+      <!-- Card 1: Uncollected -->
+      <div class="card">
+        <div class="card-edge-glow"></div>
+        <div class="card-content">1</div>
+        <div class="gold-particles" id="particles-1"></div>
+      </div>
+      
+      <!-- Card 2: Collected -->
+      <div class="card collected">
+        <div class="card-edge-glow"></div>
+        <div class="card-content">2</div>
+        <div class="gold-particles" id="particles-2"></div>
+      </div>
+      
+      <!-- Card 3: Uncollected -->
+      <div class="card">
+        <div class="card-edge-glow"></div>
+        <div class="card-content">3</div>
+        <div class="gold-particles" id="particles-3"></div>
+      </div>
+      
+      <!-- Card 4: Uncollected -->
+      <div class="card">
+        <div class="card-edge-glow"></div>
+        <div class="card-content">4</div>
+        <div class="gold-particles" id="particles-4"></div>
+      </div>
+      
+      <!-- Card 5: Collected -->
+      <div class="card collected">
+        <div class="card-edge-glow"></div>
+        <div class="card-content">5</div>
+        <div class="gold-particles" id="particles-5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INLINE JAVASCRIPT (All functionality here) -->
+  <script>
+    // PERFORMANCE SAFEGUARDS
+    const isLowEnd = navigator.deviceMemory < 4 || 
+                    !('gpu' in navigator) ||
+                    /iPhone (11|12|SE)/.test(navigator.userAgent);
+    
+    if (isLowEnd) {
+      document.documentElement.classList.add('low-end');
+    }
+    
+    // SIMPLE PARTICLE SYSTEM (Only for collected cards)
+    function createParticles(containerId, count = 8) {
+      if (isLowEnd) return;
+      
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.style.position = 'absolute';
+        particle.style.width = `${Math.random() * 4 + 2}px`;
+        particle.style.height = particle.style.width;
+        particle.style.backgroundColor = '#FFD700';
+        particle.style.borderRadius = '50%';
+        particle.style.opacity = '0.7';
+        particle.style.boxShadow = '0 0 6px #FFD700';
+        
+        // Random starting position within card
+        const startX = Math.random() * 100;
+        const startY = Math.random() * 100;
+        particle.style.left = `${startX}%`;
+        particle.style.top = `${startY}%`;
+        
+        container.appendChild(particle);
+        
+        // Animate particle
+        animateParticle(particle);
+      }
+    }
+    
+    function animateParticle(particle) {
+      const duration = Math.random() * 3000 + 2000; // 2-5 seconds
+      const delay = Math.random() * 1000;
+      
+      particle.style.transition = `transform ${duration}ms cubic-bezier(0.23, 1, 0.32, 1), opacity ${duration}ms`;
+      particle.style.transitionDelay = `${delay}ms`;
+      
+      // Move particle upward and slightly sideways
+      const moveX = (Math.random() - 0.5) * 20; // -10 to +10 pixels
+      const moveY = -30 - Math.random() * 20; // -30 to -50 pixels
+      
+      setTimeout(() => {
+        particle.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        particle.style.opacity = '0';
+        
+        // Reset and restart animation
+        setTimeout(() => {
+          if (particle.parentNode) {
+            particle.style.transition = 'none';
+            particle.style.transform = 'translate(0, 0)';
+            particle.style.opacity = '0.7';
+            setTimeout(() => {
+              particle.style.transition = `transform ${duration}ms cubic-bezier(0.23, 1, 0.32, 1), opacity ${duration}ms`;
+              animateParticle(particle);
+            }, 50);
+          }
+        }, duration + delay + 100);
+      }, 10);
+    }
+    
+    // INITIALIZATION
+    document.addEventListener('DOMContentLoaded', () => {
+      // Create particles for collected cards only
+      createParticles('particles-2', 6);
+      createParticles('particles-5', 6);
+      
+      // Touch interaction for cards
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        card.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          card.style.transform = 'translateY(-4px) scale(1.02)';
+        });
+        
+        card.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          card.style.transform = '';
+        });
+        
+        card.addEventListener('touchcancel', (e) => {
+          e.preventDefault();
+          card.style.transform = '';
+        });
+      });
+      
+      // Scroll to center on load
+      setTimeout(() => {
+        const dashboard = document.querySelector('.dashboard');
+        const scrollPosition = (dashboard.scrollWidth - window.innerWidth) / 2;
+        dashboard.scrollTo({
+          left: scrollPosition,
+          behavior: 'smooth'
+        });
+      }, 300);
+    });
+    
+    // PERFORMANCE OPTIMIZATION: Pause animations when tab not visible
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        document.querySelectorAll('.gold-particles div').forEach(p => {
+          p.style.animationPlayState = 'paused';
+        });
+      } else {
+        document.querySelectorAll('.gold-particles div').forEach(p => {
+          p.style.animationPlayState = 'running';
+        });
+      }
+    });
+  </script>
+</body>
+</html>
